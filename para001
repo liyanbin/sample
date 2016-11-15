@@ -1,0 +1,198 @@
+rm(list=ls())
+setwd("H:/DATA/LYB/PAMODEL/Data/")
+
+source("HDI.R")
+library("rstan") 
+
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+
+# -------------------------------------------
+# Parameters for Synthetic data
+# -------------------------------------------
+PIP <- list(
+  OutPath        = 'H:/DATA/LYB/PAMODEL/DataTestData/',
+  #-- STAN Parameter  
+  STAN_Compile                   =    1,
+  STAN_MCMC_Steps                =  1000,
+  STAN_Chains                    =    4
+)
+
+if(!file.exists(file.path(PIP$OutPath)))
+{dir.create(PIP$OutPath, recursive = TRUE, mode = "0777")}
+
+file_T   <-read.csv("./data_T.csv"  , header=FALSE)
+file_FT  <-read.csv("./data_FT.csv" , header=FALSE)
+file_FFT <-read.csv("./data_FFT.csv", header=FALSE)
+file_FFF <-read.csv("./data_FFF.csv", header=FALSE)
+
+file_header <-read.csv("./data_MD_BLR.csv", header=FALSE)
+
+
+###### FILTER DATA
+file_T   <-file_T   [which(file_T[,1]=3)]
+file_FT  <-file_FT  [which(file_T[,1]=3)]
+file_FFT <-file_FFT [which(file_T[,1]=3)]
+file_FFF <-file_FFF [which(file_T[,1]=3)]
+
+stan_data                      <- list(N_BatchLotL2            = file_header[,6],
+                                       Num_Batch_Lot           = unique(file_header[,3]),
+                                       Num_Batch_Lot_L2        = unique(file_header[,5]),
+                                       Num_Batches             = 2,
+                                       Num_Lots                = c(15,24),
+                                       Num_TM_L2               = 28,
+                                       Num_R2                  = 2,
+                                       Num_Comb_I              = dim(file_T[,7])[1],
+                                       Num_Comb_II             = dim(file_FT[,7])[1],
+                                       Num_Comb_III            = dim(file_FFT[,7])[1],
+                                       Num_Comb_IIII           = dim(file_FFF[,7])[1],
+                                       TM_indicies_case_I      = file_T[,6],
+                                       TM_indicies_case_II     = file_FT[,6],
+                                       TM_indicies_case_III    = file_FFT[,6],
+                                       TM_indicies_case_IIII   = file_FFF[,6],
+                                       K_case_I                = file_T[,7],
+                                       K_case_II               = file_FT[,7],
+                                       K_case_III              = file_FFT[,7],
+                                       K_case_IIII             = file_FFF[,7],
+                                       Batch_Lot_L2_index_I    = file_T[,5],
+                                       Batch_Lot_L2_index_II   = file_FT[,5],
+                                       Batch_Lot_L2_index_III  = file_FFT[,5],
+                                       Batch_Lot_L2_index_IIII = file_FFF[,5])
+
+# -------------------------------------------
+# The model
+# -------------------------------------------
+model.stan <- "
+data
+{
+  int<lower=0> Num_TM_L2;
+  int<lower=0> Num_Batch_Lot;
+  int<lower=0> Num_Batch_Lot_L2;
+  int<lower=0> Num_R2;
+
+  int<lower=0> Num_Batches;
+  int<lower=0> Num_Lots              [Num_Batches];
+
+  int<lower=0> N_BatchLotL2          [Num_Batch_Lot_L2];
+
+  int<lower=0> Num_Comb_I;
+  int<lower=0> Batch_Lot_L2_index_I  [Num_Comb_I];
+  int<lower=1> TM_indicies_case_I    [Num_Comb_I];         /// T   case
+  int<lower=0> K_case_I              [Num_Comb_I];
+
+  int<lower=0> Num_Comb_II;
+  int<lower=0> Batch_Lot_L2_index_II [Num_Comb_II];
+  int<lower=1> TM_indicies_case_II   [Num_Comb_II, 2];     /// FT  case
+  int<lower=0> K_case_II             [Num_Comb_II];
+
+  int<lower=0> Num_Comb_III;
+  int<lower=0> Batch_Lot_L2_index_III[Num_Comb_III];
+  int<lower=1> TM_indicies_case_III  [Num_Comb_III, 3];   /// FFT case
+  int<lower=0> K_case_III            [Num_Comb_III];
+
+  int<lower=0> Num_Comb_IIII;
+  int<lower=0> Batch_Lot_L2_index_IIII[Num_Comb_IIII];
+  int<lower=1> TM_indicies_case_IIII  [Num_Comb_IIII, 3];  /// FFT case
+  int<lower=0> K_case_IIII            [Num_Comb_IIII];     /// FFF case
+}
+
+parameters 
+{
+  real<lower=0, upper=1.0>  p_mat                    [Num_Batch_Lot_L2];
+  real<lower=0, upper=1.0>  p_test                   [Num_TM_L2];
+//  real<lower=0, upper=1.0>  mean_failrate_batches  [Num_Batches];
+//  real<lower=0, upper=0.1>  stdd_failrate_batches  [Num_Batches];
+}
+/*
+transformed parameters
+{
+
+  real<lower=0, upper=1.0> Material_fail_rate[Num_Batch_Lot];
+  for(i in 1:Num_Batch_Lot)
+      Material_fail_rate[i] = 0;
+
+  /// TODO Umstellen auf BatchLotIndex ....
+  for(i in 1:Num_Batch_Lot)
+      for(j in 1 : Num_R2)
+        Material_fail_rate[i] = Material_fail_rate[i] + p_mat[(i-1) * Num_R2 + j ];
+}
+*/
+model
+{
+  for(i in 1:Num_Batch_Lot_L2)
+    target +=(lgamma(N_BatchLotL2[i]-1));
+
+  for(i in 1:Num_Comb_I)
+  {
+    real log_lik;
+    log_lik = log(1-p_mat[ Batch_Lot_L2_index_I[i] ]) + log(1-p_test[ TM_indicies_case_I[i] ]); /// T     ~ case
+    target +=( K_case_I[i]*log_lik - lgamma(K_case_I[i] + 1 ) );  
+  }
+
+  for(i in 1:Num_Comb_II)
+  {
+    real log_lik;
+    log_lik = log(1-p_mat[ Batch_Lot_L2_index_II[i] ]) + log(1 - p_test[ TM_indicies_case_II[i, 2] ] ) + log(p_test[ TM_indicies_case_II[i, 1] ]); /// FT    ~ case
+    target +=( K_case_II[i]*log_lik - lgamma(K_case_II[i] + 1 ) );  
+  }
+  
+  for(i in 1:Num_Comb_III)
+  {
+    real log_lik;
+    log_lik = log(1-p_mat[ Batch_Lot_L2_index_III[i] ]) + log(1-p_test[ TM_indicies_case_III[i,3] ]) + log(p_test[TM_indicies_case_III[i,2]]) +log(p_test[TM_indicies_case_III[i,1]]); /// FFT   ~ case
+    target +=( K_case_III[i]*log_lik - lgamma(K_case_III[i] + 1 ) );  
+  }
+
+  for(i in 1:Num_Comb_IIII)
+  {
+    real log_lik;
+    real mat_error_case[8];
+
+    mat_error_case[1] =log(1-p_test[TM_indicies_case_IIII[i,1]])+log(1-p_test[TM_indicies_case_IIII[i,2]])+log(1-p_test[TM_indicies_case_IIII[i,3]]);
+
+    mat_error_case[2] =log(1-p_test[TM_indicies_case_IIII[i,1]])+log(1-p_test[TM_indicies_case_IIII[i,2]])+log(  p_test[TM_indicies_case_IIII[i,3]]);
+    mat_error_case[3] =log(  p_test[TM_indicies_case_IIII[i,1]])+log(1-p_test[TM_indicies_case_IIII[i,2]])+log(1-p_test[TM_indicies_case_IIII[i,3]]);
+    mat_error_case[4] =log(1-p_test[TM_indicies_case_IIII[i,1]])+log(  p_test[TM_indicies_case_IIII[i,2]])+log(1-p_test[TM_indicies_case_IIII[i,3]]);
+
+    mat_error_case[5] =log(  p_test[TM_indicies_case_IIII[i,1]])+log(  p_test[TM_indicies_case_IIII[i,2]])+log(1-p_test[TM_indicies_case_IIII[i,3]]);
+    mat_error_case[6] =log(  p_test[TM_indicies_case_IIII[i,1]])+log(1-p_test[TM_indicies_case_IIII[i,2]])+log(  p_test[TM_indicies_case_IIII[i,3]]);
+    mat_error_case[7] =log(1-p_test[TM_indicies_case_IIII[i,1]])+log(  p_test[TM_indicies_case_IIII[i,2]])+log(  p_test[TM_indicies_case_IIII[i,3]]);
+
+    mat_error_case[8] =log(  p_test[TM_indicies_case_IIII[i,1]])+log(  p_test[TM_indicies_case_IIII[i,2]])+log(  p_test[TM_indicies_case_IIII[i,3]]);
+    
+    log_lik = log_sum_exp(log(1-p_mat[Batch_Lot_L2_index_IIII[i]]) + log(p_test[TM_indicies_case_IIII[i, 1]]) + log(p_test[TM_indicies_case_IIII[i, 2]]) + log(p_test[TM_indicies_case_IIII[i, 3]]), log(p_mat[Batch_Lot_L2_index_IIII[i]]) + log_sum_exp(mat_error_case) );/// FFF   ~ case
+    target +=( K_case_IIII[i]*log_lik - lgamma(K_case_IIII[i] + 1 ) );  
+  }
+  
+  
+/*  for(batch in 1 : Num_Batches)
+  {
+    mean_failrate_batches[batch] ~ normal(0.05, 0.05);
+    stdd_failrate_batches[batch] ~ normal(0.2, 0.1);
+    
+    for(lot in 1 : Num_Lots[batch])
+      target += normal_log(Material_fail_rate[ (batch-1)*Num_Batches + lot], mean_failrate_batches[batch], stdd_failrate_batches[batch]); 
+  }
+*/  
+}
+
+"
+
+# -------------------------------------------
+# FIT STAN
+# -------------------------------------------
+if(PIP$STAN_Compile == "1")
+{
+  posterior <- stan(model_code = model.stan, data = stan_data, iter = PIP$STAN_MCMC_Steps, chains = PIP$STAN_Chains, control=list(adapt_delta=0.9))
+  PIP$STAN_Compile <- "0"
+}else
+{
+  posterior <- stan(fit=posterior, data = stan_data, iter = PIP$STAN_MCMC_Steps, chains = PIP$STAN_Chains, control=list(adapt_delta=0.9))
+}
+
+cat("--------------------------------------------------------------------------------------\n")
+cat("STAN done! Collect results .... \n")
+cat("--------------------------------------------------------------------------------------\n")
+allpars  <- extract(posterior, inc_warmup = FALSE)
+numsamps <- dim(allpars$LOT_Failture_prob) 
+traceplot(posterior)
