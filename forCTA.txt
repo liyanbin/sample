@@ -1,0 +1,107 @@
+https://sap-my.sharepoint.com/:f:/p/yanbin_li/Eh2ecZZRmxxBkgqjpItVx1QBOqAyMECFxYDkm4wlwpN-Ng?e=5%3acUISoj&at=9
+
+Process Flow:
+
+https://cimg4.wdf.sap.corp:44302/sap/bc/ui5_ui5/ui2/ushell/shells/abap/FioriLaunchpad.html?sap-client=001&sap-language=EN#AccountingDocument-displayProcessFlowAP?DocumentNumber=5105763923&DocumentType=2&FiscalYear=2019&sap-ushell-navmode=explace
+
+Supplier Invocie:
+
+https://cimg4.wdf.sap.corp:44302/sap/bc/ui2/flp?sap-client=745&sap-language=EN#SupplierInvoice-list1&/?sap-iapp-state=ASL1BAELGMA25XT5TBW3UHGVN69UBQCM6QYD9B39
+
+SSF:
+
+      {
+        "__metadata" : {
+          "id" : "http://cldvmxwi00373.wdf.sap.corp:50080/sap/opu/odata/sap/API_SERVICE_REQUEST_SRV/A_ServiceRequestText(ServiceRequest='8000000050',Language='EN',LongTextID='ZINV')",
+          "uri" : "http://cldvmxwi00373.wdf.sap.corp:50080/sap/opu/odata/sap/API_SERVICE_REQUEST_SRV/A_ServiceRequestText(ServiceRequest='8000000050',Language='EN',LongTextID='ZINV')",
+          "type" : "API_SERVICE_REQUEST_SRV.A_ServiceRequestTextType"
+        },
+        "ServiceRequest" : "8000000050",
+        "Language" : "EN",
+        "LongTextID" : "ZINV",
+        "LongText" : "[{\"SupplierInvoiceID\": \"4500218887\"},{\"SupplierInvoiceID\": \"4500218886\"}]"
+      }
+
+
+For text type ‘ZBOT’:
+ 
+"[{
+                                \"SupplierInvoiceID\": \"540036942\",
+                                \"InvoiceDocID\": \"540036942/2019\",
+                                \"InvoiceAmount\": \"34867.97 USD\",
+                                \"InvoiceDate\": \"2019-04-10\",
+                                \"PaymentDueDate\": \"2019-04-30\",
+​​​​                                \"InvoiceStatus\": \"Completed\",
+                                ​​​​\"PaymentStatus\": \"Scheduled\",
+                                ​\"DatePaid\": \"\",
+                                \"BlockReason\": \"\" ​
+                }, {
+                                \"SupplierInvoiceID\": \"540036943\",
+                                \"InvoiceDocID\": \"540036943/2019\",
+                                \"InvoiceAmount\": \"1090.00 USD\",
+                                \"InvoiceDate\": \"2019-04-11\",
+                                \"PaymentDueDate\": \"2019-04-30\"​,
+                                \"InvoiceStatus\": \"InProcess\",
+                                ​​​​\"PaymentStatus\": \"In approval\",
+                                ​\"DatePaid\": \"\",
+                                \"BlockReason\": \"\" ​
+                }, {
+                                \"SupplierInvoiceID\": \"540036944\",
+                                \"InvoiceDocID\": '540036944/2019\",
+                                \"InvoiceAmount\": \"200.00 USD\",
+                                \"InvoiceDate\": \"2019-04-07\",
+                                \"PaymentDueDate\": \"2019-04-30\"​,
+                                \"InvoiceStatus\": \"InProcess\",
+                                ​​​​\"PaymentStatus\": \"blocked\",
+                                ​\"DatePaid\": \"\",
+                                \"BlockReason\": \"Invoice Verification\" ​
+                }
+]"
+
+"
+[
+  {
+    \"SupplierInvoiceID\": \"540036942\",
+    \"InvoiceDocID\": \"540036942/2019\",
+    \"InvoiceAmount\": \"34867.97 USD\",
+    \"InvoiceDate\": \"10.04.2019\",
+    \"PaymentDueDate\": \"30.04.2019\",
+    \"InvoiceStatus\": \"Posted\",
+    \"PaymentStatus\": \"Scheduled\",
+    \"DatePaid\": \"\",
+    \"BlockReason\": \"\"
+  },
+  {
+    \"SupplierInvoiceID\": \"540036943\",
+    \"InvoiceDocID\": \"540036943/2019\",
+    \"InvoiceAmount\": \"1090.00 USD\",
+    \"InvoiceDate\": \"11.04.2019\",
+    \"PaymentDueDate\": \"30.04.2019\",
+    \"InvoiceStatus\": \"In Process\",
+    \"PaymentStatus\": \"In Approval\",
+    \"DatePaid\": \"\",
+    \"BlockReason\": \"\"
+  },
+  {
+    \"SupplierInvoiceID\": \"540036944\",
+    \"InvoiceDocID\": \"540036944/2019\",
+    \"InvoiceAmount\": \"200.00 USD\",
+    \"InvoiceDate\": \"07.04.2019\",
+    \"PaymentDueDate\": \"30.04.2019\",
+    \"InvoiceStatus\": \"In Process\",
+    \"PaymentStatus\": \"blocked\",
+    \"DatePaid\": \"\",
+    \"BlockReason\": \"InvoiceVerification\"
+  }
+]
+"
+
+
+
+https://github.com/pedroia/warehouse
+
+hukuiyou@yahoo.com/HJlpjsx1234
+
+
+H:\Documents\store\demo\bin\curl.exe --insecure  -H "Authorization:Basic U1NGTUdSOldlbGNvbWUx" -H "APIKey:PoVfcZ15mGo8VhFrZoyNF5EA1kCNa2LY" -H "Accept: application/json"  https://cimg4.wdf.sap.corp:61372/sap/opu/odata/sap/API_SUPPLIERINVOICE_PROCESS_SRV/A_SupplierInvoice?sap-client=400&$filter=InvoicingParty%20eq%20%27RSU300102%27%20and%20SupplierInvoiceIDByInvcgParty%20eq%20%274500231183%27 -o H:\Documents\store\BMWDemoAPI\log\output.txt 
+ 
